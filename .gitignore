@@ -1,0 +1,83 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+.installed.cfg
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Node / Frontend
+node_modules/
+dist/
+.nuxt/
+.next/
+.output/
+build/
+.vite/
+.parcel-cache/
+*.tsbuildinfo
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Env / Secrets
+.env
+.env.local
+.env.*.local
+*.local
+*.pem
+*.key
+credentials.toml
+*.token
+
+# Logs
+*.log
+logs/
+
+# Local DB files
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+target/
+
+# Scratch files
+tmp/
+tmp_*
+.cache/
+
+# Local assistant/editor state
+.codex/
+.claude/
+.TreeWork/
+
+# Course and presentation artifacts are not part of the product source tree.
+reports/
+PPT/
+*.mp4
+
+# Deploy runtime data (docker bind mounts) — never commit
+deploy/data/
+
+# The container build compiles the frontend; generated static assets do not
+# belong in source control.
+backend/static/

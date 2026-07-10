@@ -1,0 +1,18 @@
+# CoreLab uv workspace root.
+# This file does not declare a publishable package; it only configures
+# the workspace so the three Python deliverables (backend / agent /
+# shared/protocol) share one lockfile and editable cross-references.
+
+[tool.uv.workspace]
+members = [
+    "shared/protocol",
+    "backend",
+    "agent",
+]
+
+# Cross-member editable references. Backend and agent declare
+# `dependencies = ["corelab-protocol"]`, and
+# this `[tool.uv.sources]` mapping resolves it to the workspace member
+# instead of pulling from PyPI.
+[tool.uv.sources]
+corelab-protocol = { workspace = true }

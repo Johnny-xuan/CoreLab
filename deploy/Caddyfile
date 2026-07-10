@@ -1,0 +1,46 @@
+# CoreLab Caddyfile — plain HTTP reverse proxy on :80 by default.
+# Put TLS here or in an upstream campus/cloud reverse proxy for production.
+{
+	auto_https off
+	admin off
+}
+
+:80 {
+	encode gzip
+
+	# API + WebSocket → backend
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+	handle /ws/* {
+		reverse_proxy backend:8000
+	}
+
+	# Liveness / readiness probes — proxied to backend
+	handle /healthz {
+		reverse_proxy backend:8000
+	}
+	handle /readyz {
+		reverse_proxy backend:8000
+	}
+
+	# Static frontend is served by backend (multi-stage Docker build copies
+	# frontend dist into the backend image at /app/static).
+	# Default fall-through forwards everything else to backend so SPA
+	# fallback (try_files → index.html) is handled by FastAPI.
+	handle /* {
+		reverse_proxy backend:8000
+	}
+
+	# Basic security headers — even on plain HTTP, no harm in setting.
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer-when-downgrade"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+	}
+
+	# Access logging is disabled by default because agent credentials are
+	# transported in the WebSocket query string. If access logs are enabled
+	# upstream, redact query parameters before storing them.
+}

@@ -1,0 +1,148 @@
+# CoreLab — docker compose stack
+#
+# Services:
+#   - mysql:    MySQL 8.0 (utf8mb4_0900_ai_ci, UTC, host port 3307 for dev)
+#   - redis:    cache-only (no persistence) for rate-limit / nonce / lock
+#   - backend:  FastAPI + uvicorn (built from ../backend)
+#   - caddy:    reverse proxy on :80 → backend
+#
+# Backend image builds the frontend dist and serves the SPA through FastAPI;
+# Vite on :5173 is only for local frontend development.
+#
+# Usage:
+#   cp .env.example .env  &&  edit secrets  &&  docker compose up -d
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: corelab
+      MYSQL_USER: corelab
+      MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD}
+      # Separate restricted runtime user for the FastAPI app.
+      MYSQL_APP_USER_PASSWORD: ${MYSQL_APP_USER_PASSWORD}
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_0900_ai_ci
+      --default-time-zone=+00:00
+      --max-connections=200
+      --innodb-buffer-pool-size=512M
+      --log-bin-trust-function-creators=1
+    volumes:
+      - ${CORELAB_DATA_DIR:-./data}/mysql:/var/lib/mysql
+      # Init scripts run on first start (when ./data/mysql is empty).
+      # Provisions the corelab_app runtime user with no DELETE grants.
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # Development convenience. Keep the database bound to loopback.
+      - "127.0.0.1:${MYSQL_HOST_PORT:-3307}:3306"
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+        - -uroot
+        - -p${MYSQL_ROOT_PASSWORD}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - corelab-internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # cache-only: no AOF, no RDB snapshots — Redis is for ephemeral
+    # nonce / rate-limit / advisory-lock; loss on restart is acceptable.
+    # /data on tmpfs so the anonymous volume can never carry forward an
+    # incompatible RDB file from a previous redis major version.
+    command:
+      - redis-server
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+    tmpfs:
+      - /data
+    networks:
+      - corelab-internal
+
+  backend:
+    image: corelab-backend:${IMAGE_TAG:-local-dev}
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      # Runtime DB user — restricted (SELECT/INSERT/UPDATE on corelab.*).
+      CORELAB_DATABASE_URL: mysql+asyncmy://corelab_app:${MYSQL_APP_USER_PASSWORD}@mysql:3306/corelab
+      # Migration DB user — full grants on corelab.* (alembic only).
+      CORELAB_MIGRATION_DATABASE_URL: mysql+asyncmy://corelab:${MYSQL_USER_PASSWORD}@mysql:3306/corelab
+      CORELAB_REDIS_URL: redis://redis:6379/0
+      CORELAB_JWT_SECRET: ${JWT_SECRET}
+      CORELAB_BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:-http://localhost:${HTTP_PORT:-80}}
+      CORELAB_CORS_ORIGINS: ${CORS_ORIGINS:-}
+      CORELAB_LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORELAB_SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-true}
+      CORELAB_SCHEDULER_TICK_SECONDS: ${SCHEDULER_TICK_SECONDS:-30}
+    volumes:
+      - ${CORELAB_DATA_DIR:-./data}/backend-logs:/var/log/corelab
+    expose:
+      - "8000"
+    networks:
+      - corelab-internal
+      - corelab-public
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      # 443 can be enabled when Caddy owns TLS for the deployment.
+      # - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${CORELAB_DATA_DIR:-./data}/caddy-data:/data
+      - ${CORELAB_DATA_DIR:-./data}/caddy-config:/config
+    depends_on:
+      - backend
+    networks:
+      - corelab-public
+
+  # Optional Cloudflare Quick Tunnel sidecar.
+  # Only started when `./install.sh --tunnel cloudflare` is used, via
+  # `docker compose --profile tunnel up`. Default install (no flag)
+  # leaves this off; LAN mode is the default. cloudflared talks HTTP
+  # to caddy:80 inside the compose network; trycloudflare picks the
+  # random URL and prints it to stdout — install.sh parses it.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command:
+      - tunnel
+      - --no-autoupdate
+      - --metrics
+      - 0.0.0.0:8001
+      - --url
+      - http://caddy:80
+    depends_on:
+      - caddy
+    networks:
+      - corelab-public
+
+networks:
+  # Network membership keeps MySQL and Redis off the public proxy network.
+  corelab-internal:
+    driver: bridge
+  corelab-public:
+    driver: bridge

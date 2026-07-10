@@ -1,0 +1,43 @@
+# Root ruff config — shared by backend / agent / shared/protocol.
+# Per-package overrides can still live in each pyproject.toml [tool.ruff].
+
+target-version = "py311"
+line-length = 100
+extend-exclude = [
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "node_modules",
+    "alembic/versions",  # auto-generated migrations
+]
+
+[lint]
+# Selection: pyflakes (F), pycodestyle errors+warnings (E/W), isort (I),
+# pep8-naming (N), bugbear (B), comprehensions (C4), pyupgrade (UP),
+# simplify (SIM), ruff-specific (RUF), async (ASYNC).
+select = [
+    "F",     # pyflakes
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "I",     # isort
+    "N",     # pep8-naming
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "UP",    # pyupgrade
+    "SIM",   # flake8-simplify
+    "RUF",   # ruff-specific
+    "ASYNC", # async best practices
+]
+ignore = [
+    "E501",  # line too long — formatter handles
+    "B008",  # do not perform function calls in argument defaults (FastAPI Depends idiom)
+]
+
+[lint.per-file-ignores]
+"**/tests/**/*.py" = ["B011"]  # assert False is fine in tests
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

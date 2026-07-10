@@ -1,0 +1,416 @@
+@import './tokens.css';
+
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--c-text-primary);
+  background: var(--c-bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-tight);
+  color: var(--c-text-primary);
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+h2 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+}
+
+h3 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+}
+
+/* Section labels (uppercase small caps, Vercel-style card titles). */
+.section-label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--c-text-secondary);
+}
+
+code,
+pre,
+kbd,
+samp,
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'zero', 'ss01';
+}
+
+code {
+  font-size: 0.9em;
+  background: var(--c-bg-code);
+  border: 1px solid var(--c-border-subtle);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  color: var(--c-text-primary);
+}
+
+/* Tabular figures for IDs, timestamps, counters. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* Tight cell content — never wraps. Use for IDs / timestamps in tables. */
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Secondary text tone for in-cell metadata. */
+.muted {
+  color: var(--c-text-secondary);
+}
+
+/* Keyboard hint badge (Vercel "F" shortcut indicator pattern). */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-sunken);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+a {
+  color: var(--c-text-link);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+a:hover {
+  color: var(--c-text-link-hover);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Focus ring — sharp accent. */
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--c-accent-soft);
+  color: var(--c-text-primary);
+}
+
+/* ── Naive UI overrides — fold Vercel visual language into NButton /
+   NInput / NCard so the whole UI reads consistently. ──────────────── */
+
+/* Primary buttons: Vercel black-on-white CTAs. */
+.n-button.n-button--primary-type {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: var(--tracking-snug);
+}
+
+.n-card {
+  border-radius: var(--radius-lg);
+  border-color: var(--c-border-subtle);
+  background: var(--c-bg-elevated);
+}
+.n-card__content {
+  padding: var(--space-5);
+}
+
+.n-input,
+.n-data-table,
+.n-card,
+.n-form-item-label {
+  font-family: var(--font-sans);
+}
+
+/* Kill Chrome's autofill tint. When the browser fills username/password it
+   paints the native <input> a pale blue/yellow that bleeds through naive-ui's
+   transparent input element. You can't set background-color on an autofilled
+   field directly (Chrome overrides it), so mask it with a full-bleed inset
+   shadow in the surface colour and delay the background repaint. Text + caret
+   colours are pinned so they don't flip to the browser default. Adapts to
+   light/dark via the same tokens the inputs already use. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--c-text-primary) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--c-bg-elevated) inset !important;
+  box-shadow: 0 0 0 1000px var(--c-bg-elevated) inset !important;
+  caret-color: var(--c-text-primary);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Data tables: tighter, monospaced cells where appropriate. */
+.n-data-table .mono,
+td.mono,
+th.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+/* Utility — page layout primitives shared across views. */
+.page {
+  padding: var(--space-6) var(--space-8);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.page-title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+.page-subtitle {
+  font-size: var(--text-sm);
+  color: var(--c-text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Motion vocabulary — shared animation primitives. Every page may use a
+   *different* visual accent, but they all draw from this one set so the
+   whole app moves with a single, coherent "accent". Prefix: cl- (CoreLab).
+   prefers-reduced-motion is honoured globally at the bottom.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Entrance — content rises + fades in. Add .cl-enter; stagger siblings
+   with an inline --cl-delay (e.g. style="--cl-delay:.08s"). */
+@keyframes cl-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.cl-enter {
+  animation: cl-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--cl-delay, 0s);
+}
+
+/* Status pulse — a dot breathes a soft ring. Tint via --cl-pulse-color. */
+@keyframes cl-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--cl-pulse-color, color-mix(in srgb, var(--c-accent) 50%, transparent));
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+.cl-pulse {
+  animation: cl-breathe 2.4s ease-in-out infinite;
+}
+
+/* Signal rings — concentric ripples (radar / broadcast / heartbeat motif).
+   Put .cl-ripple spans inside a position:relative parent. */
+@keyframes cl-ripple {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  70% {
+    opacity: 0.1;
+  }
+  100% {
+    transform: scale(2.3);
+    opacity: 0;
+  }
+}
+
+/* Sheen — a light sweep across a surface (hero accents, loading shimmer). */
+@keyframes cl-sheen {
+  from {
+    background-position: -150% 0;
+  }
+  to {
+    background-position: 250% 0;
+  }
+}
+
+/* Spin — for "working / probing / syncing" affordances. */
+@keyframes cl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hover lift — interactive cards. */
+.cl-lift {
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+.cl-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Hover nudge — list rows slide a touch on hover. */
+.cl-nudge {
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+.cl-nudge:hover {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-enter {
+    animation: none;
+  }
+  .cl-pulse {
+    animation: none;
+  }
+  .cl-lift:hover {
+    transform: none;
+  }
+  .cl-nudge:hover {
+    transform: none;
+  }
+  /* Decorative ripples are kept alive but slow + faint per-page. */
+}
+
+/* ============================================================
+   v2 — compact page bar (non-overview pages).
+   Replaces the boxed hero on list / inbox / tool pages so the
+   whole app doesn't open with the same big rounded billboard.
+   Usage:
+     <header class="cl-pagebar cl-enter">
+       <div class="cl-pagebar-icon"><NIcon .../></div>
+       <div class="cl-pagebar-body">
+         <h1 class="cl-pagebar-title">脚本 <span class="cl-pagebar-meta">…</span></h1>
+         <p class="cl-pagebar-sub">副标题</p>
+       </div>
+       <div class="cl-pagebar-actions">…buttons…</div>
+     </header>
+   ============================================================ */
+.cl-pagebar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) 0 var(--space-5);
+  border-bottom: 1px solid var(--c-border-subtle);
+  margin-bottom: var(--space-6);
+}
+.cl-pagebar-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--c-accent) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-accent) 22%, transparent);
+  color: var(--c-accent);
+}
+/* 暗色:图标砖退成中性灰 —— 暗色下大面积降饱和,周围全灰时
+ * 每页一块亮蓝砖反而成了最突兀的东西;蓝色让位给状态信号。
+ * (按严重度/状态染色的页面会用更高特异性的类覆盖,不受影响。) */
+[data-theme='dark'] .cl-pagebar-icon {
+  background: var(--c-bg-sunken);
+  border-color: var(--c-border-default);
+  color: var(--c-text-secondary);
+}
+.cl-pagebar-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cl-pagebar-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--c-text-primary);
+  line-height: 1.3;
+}
+.cl-pagebar-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--c-text-tertiary);
+}
+.cl-pagebar-sub {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  color: var(--c-text-secondary);
+}
+.cl-pagebar-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* v2 — stat numbers: data screens use big, tabular, tightly-tracked digits. */
+.cl-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.cl-stat {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-3xl);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--c-text-primary);
+}
+.cl-stat-unit {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--c-text-tertiary);
+  margin-left: 2px;
+}

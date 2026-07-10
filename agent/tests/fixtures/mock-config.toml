@@ -1,0 +1,12 @@
+# Mock config for local / CI agent runs.
+# Points at a backend that almost certainly does not exist so the
+# reconnect loop has work to demonstrate.
+
+backend_url = "wss://localhost:8443"
+mock_mode = true
+log_level = "INFO"
+log_json = false  # easier to eyeball during dev
+
+# Faster backoff so manual runs feel responsive.
+reconnect_initial_seconds = 0.5
+reconnect_max_seconds = 5.0

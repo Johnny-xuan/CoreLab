@@ -1,0 +1,19 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vite
+.eslintcache
+*.tsbuildinfo
+coverage
+
+# vue-tsc -b artifacts for root-level configs (vite/vitest config). Source
+# of truth is *.ts; the emitted *.js / *.d.ts must not be committed.
+vite.config.js
+vite.config.d.ts
+vitest.config.js
+vitest.config.d.ts
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store

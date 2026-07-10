@@ -1,0 +1,100 @@
+# CoreLab integration-test services.
+#
+# Spins up a disposable MySQL + Redis stack on host ports 3308 / 6380
+# (deliberately offset from the dev stack on 3307 / 6379 so the two can
+# coexist on one developer machine). Backend `uv run pytest` runs on the
+# host against this stack via `make test-integration`.
+#
+# Storage: tmpfs only. The MySQL data directory never touches disk so
+# state resets cleanly between `make test-integration` runs — no risk of
+# stale rows surviving across topologies, and the dev stack's
+# ./data/mysql bind-mount is left untouched.
+#
+# Init scripts: the prod `./mysql-init` directory is reused as-is so the
+# split-credential model is exercised under integration tests, not just
+# in deployment.
+
+# Use a distinct compose project name so docker compose does not treat
+# the dev stack (deploy/docker-compose.yml, same directory) as orphans
+# when this file is brought up alongside it.
+name: corelab-test
+
+services:
+  mysql-test:
+    image: mysql:8.0
+    container_name: corelab-mysql-test
+    restart: "no"
+    environment:
+      # All four secrets are injected by the Makefile target so this
+      # YAML carries no literals (keeps detect-secrets quiet, and lets
+      # CI substitute different test passwords if it ever needs to).
+      MYSQL_ROOT_PASSWORD: ${TEST_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: corelab
+      MYSQL_USER: corelab
+      MYSQL_PASSWORD: ${TEST_MYSQL_USER_PASSWORD}
+      MYSQL_APP_USER_PASSWORD: ${TEST_MYSQL_APP_USER_PASSWORD}
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_0900_ai_ci
+      --default-time-zone=+00:00
+      --max-connections=200
+      --innodb-buffer-pool-size=256M
+      --log-bin-trust-function-creators=1
+    tmpfs:
+      # tmpfs so a re-run starts from an empty data dir — init scripts
+      # below re-run on first start, recreating corelab_app each time.
+      - /var/lib/mysql
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # Host port 3308 — dev stack keeps 3307, so both can run together.
+      - "3308:3306"
+    healthcheck:
+      # Use a real SELECT, not just `mysqladmin ping` — ping returns OK
+      # while the docker entrypoint is still running init scripts in
+      # parallel, which means the corelab / corelab_app grants are not
+      # yet effective. SELECT 1 only passes after the post-init restart
+      # has the real mysqld accepting client queries.
+      test:
+        - CMD
+        - mysql
+        - -h
+        - localhost
+        - -uroot
+        - -p${TEST_MYSQL_ROOT_PASSWORD}
+        - -e
+        - SELECT 1
+      interval: 2s
+      timeout: 5s
+      retries: 40
+    networks:
+      - corelab-test
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: corelab-redis-test
+    restart: "no"
+    # Same cache-only posture as the dev stack. SSH challenge nonces and
+    # scheduler advisory locks live here. tmpfs means
+    # nothing crosses runs.
+    command:
+      - redis-server
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+    tmpfs:
+      - /data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    networks:
+      - corelab-test
+
+networks:
+  corelab-test:
+    driver: bridge

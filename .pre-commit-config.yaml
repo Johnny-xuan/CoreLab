@@ -1,0 +1,93 @@
+# CoreLab pre-commit hooks
+# Run on every commit; install with: pre-commit install --install-hooks
+# Run manually on whole repo: pre-commit run --all-files
+
+default_language_version:
+  # pre-commit's own hook envs (ruff / detect-secrets) run on whatever Python
+  # is available; this does NOT affect backend / agent which are pinned via uv
+  # to 3.11 in their own pyproject.toml.
+  python: python3
+
+repos:
+  # ---- generic file hygiene ----
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'  # markdown trailing two spaces = explicit line break
+      - id: end-of-file-fixer
+      - id: check-yaml
+        exclude: '^deploy/Caddyfile$'  # Caddyfile is not YAML
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # ---- secrets scanning ----
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '^(frontend/pnpm-lock\.yaml|uv\.lock)$'
+
+  # ---- Python: backend / agent / shared/protocol — ruff (check + format) ----
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.15
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # ---- Python typing — mypy via local uv (per-package) ----
+  - repo: local
+    hooks:
+      - id: mypy-backend
+        name: mypy (backend)
+        entry: bash -c 'cd backend && uv run mypy corelab_backend'
+        language: system
+        files: ^backend/.*\.py$
+        pass_filenames: false
+      - id: mypy-agent
+        name: mypy (agent)
+        entry: bash -c 'cd agent && uv run mypy corelab_agent'
+        language: system
+        files: ^agent/.*\.py$
+        pass_filenames: false
+      - id: mypy-protocol
+        name: mypy (shared/protocol)
+        entry: bash -c 'cd shared/protocol && uv run mypy corelab_protocol'
+        language: system
+        files: ^shared/protocol/.*\.py$
+        pass_filenames: false
+
+  # ---- Frontend: prettier / eslint / vue-tsc via local pnpm ----
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier (frontend)
+        entry: bash -c 'cd frontend && pnpm exec prettier --check "src/**/*.{ts,tsx,vue,js,jsx,json,css}"'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|vue|js|jsx|json|css)$
+        pass_filenames: false
+      - id: eslint
+        name: eslint (frontend)
+        entry: bash -c 'cd frontend && pnpm exec eslint "src/**/*.{ts,tsx,vue,js,jsx}"'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|vue|js|jsx)$
+        pass_filenames: false
+      - id: vue-tsc
+        name: vue-tsc (frontend type-check, build-mode)
+        entry: bash -c 'cd frontend && pnpm exec vue-tsc -b --noEmit'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|vue)$
+        pass_filenames: false
+      - id: vite-build
+        name: vite build (frontend, smoke)
+        entry: bash -c 'cd frontend && pnpm exec vite build --logLevel error'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|vue|js|jsx|json|css|html)$
+        pass_filenames: false

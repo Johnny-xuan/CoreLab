@@ -1,0 +1,167 @@
+/* CoreLab design tokens — from docs/07-ui-design.md §2.
+   Light by default, dark via [data-theme="dark"] on <html>. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Surface */
+  --c-bg-base: #fafaf9;
+  --c-bg-elevated: #ffffff;
+  --c-bg-sunken: #f4f4f5;
+  --c-bg-overlay: rgba(0, 0, 0, 0.4);
+  /* "Writing surface" — the colour cells, grid bodies, and inline
+   * code blocks paint themselves with. Same role as `--c-bg-elevated`
+   * but kept separate so the reservation grid can stay paper-white in
+   * light and not auto-track card backgrounds. */
+  --c-bg-canvas: #ffffff;
+  --c-bg-code: #f4f4f5;
+
+  /* Accent — links / selection / highlight strokes. Vercel blue. */
+  --c-accent: #0070f3;
+  --c-accent-soft: #dbeafe;
+  --c-text-link: #0070f3;
+  --c-text-link-hover: #0060d4;
+  --c-text-2xs: 11px;
+  --tracking-tight: -0.01em;
+  --tracking-snug: -0.005em;
+  --tracking-caps: 0.06em;
+  --leading-snug: 1.35;
+  --font-sans:
+    'Geist', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --font-mono:
+    'Geist Mono', ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Border */
+  --c-border-subtle: #e4e4e7;
+  --c-border-default: #d4d4d8;
+  --c-border-strong: #a1a1aa;
+
+  /* Text */
+  --c-text-primary: #18181b;
+  --c-text-secondary: #52525b;
+  --c-text-tertiary: #71717a;
+  --c-text-disabled: #a1a1aa;
+  --c-text-inverse: #ffffff;
+
+  /* Brand — Teal-Cyan */
+  --c-brand-50: #f0fdfa;
+  --c-brand-100: #ccfbf1;
+  --c-brand-500: #14b8a6;
+  --c-brand-600: #0d9488;
+  --c-brand-700: #0f766e;
+
+  /* Semantic */
+  --c-success: #16a34a;
+  --c-success-bg: #dcfce7;
+  --c-warning: #d97706;
+  --c-warning-bg: #fef3c7;
+  --c-danger: #dc2626;
+  --c-danger-bg: #fee2e2;
+  --c-info: #2563eb;
+  --c-info-bg: #dbeafe;
+
+  /* Spacing (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+
+  /* Typography */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  /* Z-index */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 1000;
+  --z-toast: 2000;
+
+  /* Reservation-grid slot states (docs/07 §5.3) */
+  --c-slot-idle: #ffffff;
+  --c-slot-idle-border: #e4e4e7;
+  --c-slot-selecting: #99f6e4;
+  --c-slot-mine: #14b8a6;
+  --c-slot-mine-active: #0d9488;
+  --c-slot-others: #fca5a5;
+  --c-slot-others-active: #ef4444;
+  --c-slot-locked: #d4d4d8;
+  --c-slot-disabled: #f4f4f5;
+  --c-slot-conflict-border: #dc2626;
+}
+
+[data-theme='dark'] {
+  --c-bg-base: #09090b;
+  --c-bg-elevated: #18181b;
+  --c-bg-sunken: #27272a;
+  --c-bg-overlay: rgba(0, 0, 0, 0.7);
+  --c-bg-canvas: #18181b;
+  --c-bg-code: #27272a;
+  --c-border-subtle: #27272a;
+  --c-border-default: #3f3f46;
+  --c-border-strong: #52525b;
+  --c-text-primary: #fafafa;
+  --c-text-secondary: #a1a1aa;
+  --c-text-tertiary: #71717a;
+  --c-text-disabled: #52525b;
+  --c-text-inverse: #18181b;
+  --c-text-link: #338cff;
+  --c-text-link-hover: #66a8ff;
+  --c-accent: #338cff;
+  --c-accent-soft: #1e3a8a;
+  --c-brand-500: #2dd4bf;
+  --c-brand-600: #14b8a6;
+
+  /* Semantic — fg 提亮一档保证暗底可读;-bg 从浅粉彩换成深色微染
+   * (没有这组覆盖时,light 的 #dcfce7 等会在暗色里渲染成亮斑)。 */
+  --c-success: #22c55e;
+  --c-success-bg: #052e16;
+  --c-warning: #f59e0b;
+  --c-warning-bg: #451a03;
+  --c-danger: #ef4444;
+  --c-danger-bg: #450a0a;
+  --c-info: #3b82f6;
+  --c-info-bg: #172554;
+
+  /* Shadows — 暗底上原 6-10% 黑阴影几乎不可见,加深保留层次感。 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 18px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.4);
+
+  /* Reservation-grid slot states — dark variant */
+  --c-slot-idle: #18181b;
+  --c-slot-idle-border: #27272a;
+  --c-slot-selecting: #134e4a;
+  --c-slot-mine: #14b8a6;
+  --c-slot-mine-active: #2dd4bf;
+  --c-slot-others: #7f1d1d;
+  --c-slot-others-active: #ef4444;
+  --c-slot-locked: #3f3f46;
+  --c-slot-disabled: #27272a;
+  --c-slot-conflict-border: #ef4444;
+}

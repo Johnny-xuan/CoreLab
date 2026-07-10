@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v8.3.2
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --all-packages
+      - run: uv run ruff check backend agent shared/protocol
+      - run: uv run ruff format --check backend agent shared/protocol
+      - run: cd backend && uv run mypy corelab_backend
+      - run: cd agent && uv run mypy corelab_agent
+      - run: cd shared/protocol && uv run mypy corelab_protocol
+      - run: cd backend && uv run pytest
+      - run: cd agent && uv run pytest
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm type-check
+      - run: pnpm test
+      - run: pnpm build
